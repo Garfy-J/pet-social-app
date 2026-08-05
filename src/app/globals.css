@@ -2,26 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  @apply bg-background text-foreground font-body;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+h1,
+h2,
+h3,
+h4 {
+  @apply font-heading;
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-2.5 text-sm font-bold shadow-[0_4px_0_0_rgba(0,0,0,0.08)] transition-all duration-150 hover:scale-105 hover:shadow-[0_5px_0_0_rgba(0,0,0,0.08)] active:scale-95 active:shadow-none disabled:pointer-events-none disabled:opacity-60;
+  }
+  .btn-primary {
+    @apply btn bg-primary text-white hover:bg-primary-dark;
+  }
+  .btn-secondary {
+    @apply btn bg-secondary text-white hover:bg-secondary-dark;
+  }
+  .btn-outline {
+    @apply btn border-2 border-secondary/30 bg-white text-secondary hover:border-secondary/60 hover:bg-secondary/5;
+  }
+
+  .card {
+    @apply rounded-2xl border border-black/5 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)];
+  }
+
+  .input-field {
+    @apply w-full rounded-xl border-2 border-black/10 bg-white px-3.5 py-2.5 text-sm text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none;
   }
 }
