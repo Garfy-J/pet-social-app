@@ -1,11 +1,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Avatar } from "@/components/Avatar";
 import { ChatIcon } from "@/components/ChatIcon";
+import { LikeButton } from "@/components/LikeButton";
 import { NewPostFab } from "@/components/NewPostFab";
+import { PawBackground } from "@/components/PawBackground";
 import { PawIcon } from "@/components/PawIcon";
 import { createClient } from "@/utils/supabase/server";
+import { formatRelativeTime } from "@/utils/formatRelativeTime";
 import { addComment, toggleLike } from "./actions";
+
+type Profile = { username: string; avatar_url: string | null };
 
 type Post = {
   id: string;
@@ -13,13 +19,13 @@ type Post = {
   media_type: "image" | "video";
   caption: string | null;
   created_at: string;
-  profiles: { username: string } | null;
+  profiles: Profile | null;
   likes: { id: string; user_id: string }[];
   comments: {
     id: string;
     body: string;
     created_at: string;
-    profiles: { username: string } | null;
+    profiles: Profile | null;
   }[];
 };
 
@@ -31,10 +37,16 @@ export default async function HomePage() {
 
   if (!user) redirect("/login");
 
+  const { data: myProfile } = await supabase
+    .from("profiles")
+    .select("username, avatar_url")
+    .eq("id", user.id)
+    .single();
+
   const { data: posts } = await supabase
     .from("posts")
     .select(
-      "id, media_url, media_type, caption, created_at, profiles(username), likes(id, user_id), comments(id, body, created_at, profiles(username))",
+      "id, media_url, media_type, caption, created_at, profiles(username, avatar_url), likes(id, user_id), comments(id, body, created_at, profiles(username, avatar_url))",
     )
     .order("created_at", { ascending: false })
     .order("created_at", { ascending: false, referencedTable: "comments" })
@@ -61,6 +73,11 @@ export default async function HomePage() {
           >
             <ChatIcon className="h-6 w-6" />
           </Link>
+          {myProfile && (
+            <Link href={`/profile/${myProfile.username}`} aria-label="Your profile">
+              <Avatar username={myProfile.username} avatarUrl={myProfile.avatar_url} />
+            </Link>
+          )}
           <form action="/auth/sign-out" method="post">
             <button className="text-sm font-bold text-secondary hover:text-secondary-dark">
               Sign out
@@ -110,14 +127,21 @@ export default async function HomePage() {
                 id={`post-${post.id}`}
                 className="card scroll-mt-20 overflow-hidden"
               >
-                <div className="flex items-center gap-2 p-4 pb-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-sm font-bold text-white">
-                    {post.profiles?.username?.[0]?.toUpperCase() ?? "?"}
-                  </div>
+                <Link
+                  href={post.profiles ? `/profile/${post.profiles.username}` : "#"}
+                  className="flex items-center gap-2 p-4 pb-3 hover:opacity-80"
+                >
+                  <Avatar
+                    username={post.profiles?.username ?? "?"}
+                    avatarUrl={post.profiles?.avatar_url}
+                  />
                   <span className="text-sm font-bold text-foreground">
                     {post.profiles?.username ?? "unknown"}
                   </span>
-                </div>
+                  <span className="text-xs font-medium text-foreground/40">
+                    · {formatRelativeTime(post.created_at)}
+                  </span>
+                </Link>
 
                 <div className="bg-black/5">
                   {post.media_type === "video" ? (
@@ -145,14 +169,7 @@ export default async function HomePage() {
 
                   <div className="mt-3 flex items-center gap-4 text-sm">
                     <form action={toggleLike.bind(null, post.id)}>
-                      <button
-                        type="submit"
-                        className={`flex items-center gap-1 font-bold transition-transform hover:scale-110 ${
-                          liked ? "text-primary" : "text-foreground/40"
-                        }`}
-                      >
-                        {liked ? "♥" : "♡"} {post.likes.length}
-                      </button>
+                      <LikeButton liked={liked} count={post.likes.length} />
                     </form>
                     <span className="flex items-center gap-1 font-bold text-foreground/40">
                       💬 {post.comments.length}
@@ -161,9 +178,16 @@ export default async function HomePage() {
 
                   {latestComment && (
                     <p className="mt-3 text-sm">
-                      <span className="font-bold text-secondary-dark">
+                      <Link
+                        href={
+                          latestComment.profiles
+                            ? `/profile/${latestComment.profiles.username}`
+                            : "#"
+                        }
+                        className="font-bold text-secondary-dark hover:underline"
+                      >
                         {latestComment.profiles?.username ?? "unknown"}
-                      </span>{" "}
+                      </Link>{" "}
                       <span className="text-foreground/80">{latestComment.body}</span>
                     </p>
                   )}
@@ -191,12 +215,13 @@ export default async function HomePage() {
             );
           })
         ) : (
-          <div className="card flex flex-col items-center gap-3 p-12 text-center">
-            <PawIcon className="h-16 w-16 text-primary/25" />
-            <p className="font-heading text-lg font-bold text-foreground">
+          <div className="card relative flex flex-col items-center gap-3 overflow-hidden p-12 text-center">
+            <PawBackground variant="compact" />
+            <PawIcon className="relative h-16 w-16 text-primary/25" />
+            <p className="relative font-heading text-lg font-bold text-foreground">
               No paw-some posts yet
             </p>
-            <p className="text-sm text-foreground/60">
+            <p className="relative text-sm text-foreground/60">
               Be the first to share a pic of your pet!
             </p>
           </div>

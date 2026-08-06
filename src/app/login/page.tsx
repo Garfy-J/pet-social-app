@@ -1,4 +1,5 @@
 import { GoogleSignInButton } from "@/components/GoogleSignInButton";
+import { PawBackground } from "@/components/PawBackground";
 import { PawIcon } from "@/components/PawIcon";
 import { login, signup } from "./actions";
 
@@ -8,8 +9,9 @@ export default function LoginPage({
   searchParams: { error?: string; message?: string };
 }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="card w-full max-w-sm space-y-6 p-8">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4">
+      <PawBackground />
+      <div className="card relative w-full max-w-sm space-y-6 p-8">
         <div className="text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
             <PawIcon className="h-8 w-8" />

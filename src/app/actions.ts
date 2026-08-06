@@ -103,3 +103,89 @@ export async function addComment(postId: string, formData: FormData) {
 
   revalidatePath("/");
 }
+
+export type ProfileFormState =
+  | { status: "idle" }
+  | { status: "error"; message: string }
+  | { status: "success" };
+
+export async function updateProfile(
+  _prevState: ProfileFormState,
+  formData: FormData,
+): Promise<ProfileFormState> {
+  try {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return { status: "error", message: "Your session expired — please sign in again." };
+    }
+
+    const bio = (formData.get("bio") as string | null)?.trim() || null;
+    const avatarFile = formData.get("avatar") as File | null;
+
+    let avatarUrl: string | undefined;
+    if (avatarFile && avatarFile.size > 0) {
+      const extension = avatarFile.name.split(".").pop() ?? "jpg";
+      const path = `${user.id}/avatar.${extension}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(path, avatarFile, { upsert: true });
+      if (uploadError) {
+        return { status: "error", message: `Avatar upload failed: ${uploadError.message}` };
+      }
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("avatars").getPublicUrl(path);
+      avatarUrl = `${publicUrl}?v=${Date.now()}`;
+    }
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ bio, ...(avatarUrl ? { avatar_url: avatarUrl } : {}) })
+      .eq("id", user.id);
+    if (error) {
+      return { status: "error", message: `Couldn't update your profile: ${error.message}` };
+    }
+
+    const username = formData.get("username") as string | null;
+    revalidatePath("/");
+    if (username) revalidatePath(`/profile/${username}`);
+    return { status: "success" };
+  } catch (err) {
+    console.error("updateProfile failed", err);
+    return { status: "error", message: "Something went wrong — please try again." };
+  }
+}
+
+export async function findOrCreateConversation(otherUserId: string) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  if (user.id === otherUserId) redirect("/");
+
+  const [userA, userB] = [user.id, otherUserId].sort();
+
+  const { data: existing } = await supabase
+    .from("conversations")
+    .select("id")
+    .eq("user_a", userA)
+    .eq("user_b", userB)
+    .maybeSingle();
+
+  if (existing) redirect(`/chat/${existing.id}`);
+
+  const { data: created, error } = await supabase
+    .from("conversations")
+    .insert({ user_a: userA, user_b: userB })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+
+  redirect(`/chat/${created.id}`);
+}

@@ -6,18 +6,21 @@ export type Database = {
           id: string;
           username: string;
           avatar_url: string | null;
+          bio: string | null;
           created_at: string;
         };
         Insert: {
           id: string;
           username: string;
           avatar_url?: string | null;
+          bio?: string | null;
           created_at?: string;
         };
         Update: {
           id?: string;
           username?: string;
           avatar_url?: string | null;
+          bio?: string | null;
           created_at?: string;
         };
         Relationships: [];
@@ -122,6 +125,86 @@ export type Database = {
           {
             foreignKeyName: "comments_user_id_fkey";
             columns: ["user_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      conversations: {
+        Row: {
+          id: string;
+          user_a: string;
+          user_b: string;
+          created_at: string;
+          last_message_at: string;
+          user_a_last_read_at: string | null;
+          user_b_last_read_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_a: string;
+          user_b: string;
+          created_at?: string;
+          last_message_at?: string;
+          user_a_last_read_at?: string | null;
+          user_b_last_read_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_a?: string;
+          user_b?: string;
+          created_at?: string;
+          last_message_at?: string;
+          user_a_last_read_at?: string | null;
+          user_b_last_read_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "conversations_user_a_fkey";
+            columns: ["user_a"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "conversations_user_b_fkey";
+            columns: ["user_b"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      messages: {
+        Row: {
+          id: string;
+          conversation_id: string;
+          sender_id: string;
+          content: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          conversation_id: string;
+          sender_id: string;
+          content: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          conversation_id?: string;
+          sender_id?: string;
+          content?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey";
+            columns: ["conversation_id"];
+            referencedRelation: "conversations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey";
+            columns: ["sender_id"];
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },

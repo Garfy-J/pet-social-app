@@ -35,3 +35,41 @@ h4 {
     @apply w-full rounded-xl border-2 border-black/10 bg-white px-3.5 py-2.5 text-sm text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none;
   }
 }
+
+@keyframes paw-float {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(var(--paw-rotate, 0deg));
+  }
+  25% {
+    transform: translate(8px, -14px) rotate(calc(var(--paw-rotate, 0deg) + 6deg));
+  }
+  50% {
+    transform: translate(-6px, -22px) rotate(calc(var(--paw-rotate, 0deg) - 5deg));
+  }
+  75% {
+    transform: translate(-10px, -6px) rotate(calc(var(--paw-rotate, 0deg) + 4deg));
+  }
+}
+
+@keyframes paw-burst {
+  0% {
+    transform: translate(-50%, -50%) translate(0, 0) scale(0.3);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(1.15);
+    opacity: 0;
+  }
+}
+
+@layer utilities {
+  .animate-paw-float {
+    animation-name: paw-float;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+  }
+  .animate-paw-burst {
+    animation: paw-burst 0.6s ease-out forwards;
+  }
+}

@@ -1,9 +1,18 @@
-export function PawIcon({ className }: { className?: string }) {
+import type { CSSProperties } from "react";
+
+export function PawIcon({
+  className,
+  style,
+}: {
+  className?: string;
+  style?: CSSProperties;
+}) {
   return (
     <svg
       viewBox="0 0 64 64"
       fill="currentColor"
       className={className}
+      style={style}
       aria-hidden="true"
     >
       <ellipse cx="32" cy="42" rx="16" ry="13" />
