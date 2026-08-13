@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AuthGateProvider } from "@/components/AuthGate";
 import { Avatar } from "@/components/Avatar";
 import { ChatIcon } from "@/components/ChatIcon";
+import { ChatLink } from "@/components/ChatLink";
 import { CommentForm } from "@/components/CommentForm";
 import { DeleteButton } from "@/components/DeleteButton";
 import { LikeButton } from "@/components/LikeButton";
@@ -110,36 +111,34 @@ export default async function HomePage() {
               Pets Social
             </span>
           </div>
-          {user ? (
-            <div className="flex items-center gap-4">
-              <Link
-                href="/chat"
-                aria-label="Messages"
-                className="text-secondary hover:text-secondary-dark"
-              >
-                <ChatIcon className="h-6 w-6" />
-              </Link>
-              {myProfile && (
-                <Link href={`/profile/${myProfile.username}`} aria-label="Your profile">
-                  <Avatar username={myProfile.username} avatarUrl={myProfile.avatar_url} />
+          <div className="flex items-center gap-4">
+            <ChatLink isLoggedIn={isLoggedIn} className="text-secondary hover:text-secondary-dark">
+              <ChatIcon className="h-6 w-6" />
+            </ChatLink>
+            {user ? (
+              <>
+                {myProfile && (
+                  <Link href={`/profile/${myProfile.username}`} aria-label="Your profile">
+                    <Avatar username={myProfile.username} avatarUrl={myProfile.avatar_url} />
+                  </Link>
+                )}
+                <form action="/auth/sign-out" method="post">
+                  <button className="text-sm font-bold text-secondary hover:text-secondary-dark">
+                    Sign out
+                  </button>
+                </form>
+              </>
+            ) : (
+              <div className="flex items-center gap-3">
+                <Link href="/login" className="text-sm font-bold text-secondary hover:text-secondary-dark">
+                  Log in
                 </Link>
-              )}
-              <form action="/auth/sign-out" method="post">
-                <button className="text-sm font-bold text-secondary hover:text-secondary-dark">
-                  Sign out
-                </button>
-              </form>
-            </div>
-          ) : (
-            <div className="flex items-center gap-3">
-              <Link href="/login" className="text-sm font-bold text-secondary hover:text-secondary-dark">
-                Log in
-              </Link>
-              <Link href="/login" className="btn-primary px-4 py-2 text-xs">
-                Sign up
-              </Link>
-            </div>
-          )}
+                <Link href="/login" className="btn-primary px-4 py-2 text-xs">
+                  Sign up
+                </Link>
+              </div>
+            )}
+          </div>
         </header>
 
         {recent.length > 0 && (
