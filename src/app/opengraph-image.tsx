@@ -29,7 +29,7 @@ export default async function Image() {
           Pets Social
         </div>
         <div style={{ fontSize: 32, color: '#666', marginTop: 12, display: 'flex' }}>
-          Share your pet's best moments
+          Share your pet&apos;s best moments
         </div>
       </div>
     ),
