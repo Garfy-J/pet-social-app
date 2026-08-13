@@ -107,7 +107,9 @@ export async function addComment(postId: string, formData: FormData) {
 export type ProfileFormState =
   | { status: "idle" }
   | { status: "error"; message: string }
-  | { status: "success" };
+  | { status: "success"; username: string };
+
+const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,20}$/;
 
 export async function updateProfile(
   _prevState: ProfileFormState,
@@ -122,8 +124,29 @@ export async function updateProfile(
       return { status: "error", message: "Your session expired — please sign in again." };
     }
 
+    const currentUsername = formData.get("currentUsername") as string | null;
+    const username = (formData.get("username") as string | null)?.trim() ?? "";
     const bio = (formData.get("bio") as string | null)?.trim() || null;
     const avatarFile = formData.get("avatar") as File | null;
+
+    if (!USERNAME_PATTERN.test(username)) {
+      return {
+        status: "error",
+        message:
+          "Username must be 3-20 characters and can only contain letters, numbers, and underscores.",
+      };
+    }
+
+    if (username !== currentUsername) {
+      const { data: existing } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("username", username)
+        .maybeSingle();
+      if (existing && existing.id !== user.id) {
+        return { status: "error", message: "That username is already taken." };
+      }
+    }
 
     let avatarUrl: string | undefined;
     if (avatarFile && avatarFile.size > 0) {
@@ -145,16 +168,19 @@ export async function updateProfile(
 
     const { error } = await supabase
       .from("profiles")
-      .update({ bio, ...(avatarUrl ? { avatar_url: avatarUrl } : {}) })
+      .update({ username, bio, ...(avatarUrl ? { avatar_url: avatarUrl } : {}) })
       .eq("id", user.id);
     if (error) {
+      if (error.code === "23505") {
+        return { status: "error", message: "That username is already taken." };
+      }
       return { status: "error", message: `Couldn't update your profile: ${error.message}` };
     }
 
-    const username = formData.get("username") as string | null;
     revalidatePath("/");
-    if (username) revalidatePath(`/profile/${username}`);
-    return { status: "success" };
+    if (currentUsername) revalidatePath(`/profile/${currentUsername}`);
+    revalidatePath(`/profile/${username}`);
+    return { status: "success", username };
   } catch (err) {
     console.error("updateProfile failed", err);
     return { status: "error", message: "Something went wrong — please try again." };

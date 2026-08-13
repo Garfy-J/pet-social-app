@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { updateProfile, type ProfileFormState } from "@/app/actions";
@@ -25,12 +26,16 @@ export function EditProfileForm({
   const [editing, setEditing] = useState(false);
   const [state, formAction] = useFormState(updateProfile, initialState);
   const formRef = useRef<HTMLFormElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (state.status === "success") {
       setEditing(false);
+      if (state.username !== username) {
+        router.replace(`/profile/${state.username}`);
+      }
     }
-  }, [state]);
+  }, [state, username, router]);
 
   if (!editing) {
     return (
@@ -50,7 +55,7 @@ export function EditProfileForm({
       action={formAction}
       className="w-full max-w-xs space-y-3 text-left"
     >
-      <input type="hidden" name="username" value={username} />
+      <input type="hidden" name="currentUsername" value={username} />
 
       {state.status === "error" && (
         <p
@@ -60,6 +65,24 @@ export function EditProfileForm({
           {state.message}
         </p>
       )}
+
+      <div>
+        <label htmlFor="username" className="block text-sm font-bold text-foreground">
+          Username
+        </label>
+        <input
+          id="username"
+          type="text"
+          name="username"
+          defaultValue={username}
+          required
+          minLength={3}
+          maxLength={20}
+          pattern="[a-zA-Z0-9_]+"
+          title="3-20 characters: letters, numbers, and underscores only"
+          className="input-field mt-1"
+        />
+      </div>
 
       <div>
         <label htmlFor="avatar" className="block text-sm font-bold text-foreground">
