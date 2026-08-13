@@ -161,6 +161,65 @@ export async function updateProfile(
   }
 }
 
+export async function deletePost(postId: string, mediaUrl: string) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { error } = await supabase.from("posts").delete().eq("id", postId);
+  if (error) throw new Error(error.message);
+
+  const marker = "/object/public/post-media/";
+  const markerIndex = mediaUrl.indexOf(marker);
+  if (markerIndex !== -1) {
+    const path = mediaUrl.slice(markerIndex + marker.length);
+    await supabase.storage.from("post-media").remove([path]);
+  }
+
+  revalidatePath("/");
+}
+
+export async function deleteComment(commentId: string) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { error } = await supabase.from("comments").delete().eq("id", commentId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/");
+}
+
+export async function reportPost(postId: string) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { error } = await supabase
+    .from("reports")
+    .insert({ reporter_id: user.id, post_id: postId });
+  if (error) throw new Error(error.message);
+}
+
+export async function reportComment(commentId: string) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { error } = await supabase
+    .from("reports")
+    .insert({ reporter_id: user.id, comment_id: commentId });
+  if (error) throw new Error(error.message);
+}
+
 export async function findOrCreateConversation(otherUserId: string) {
   const supabase = createClient();
   const {

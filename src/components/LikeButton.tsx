@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { CSSProperties } from "react";
+import { useAuthGate } from "./AuthGate";
 import { PawIcon } from "./PawIcon";
 
 const BURST_PAWS = [
@@ -12,14 +13,28 @@ const BURST_PAWS = [
   { tx: "26px", ty: "2px", size: 10 },
 ] as const;
 
-export function LikeButton({ liked, count }: { liked: boolean; count: number }) {
+export function LikeButton({
+  liked,
+  count,
+  isLoggedIn,
+}: {
+  liked: boolean;
+  count: number;
+  isLoggedIn: boolean;
+}) {
   const [burst, setBurst] = useState(false);
+  const { requireAuth } = useAuthGate();
 
   return (
     <span className="relative inline-flex">
       <button
         type="submit"
-        onClick={() => {
+        onClick={(event) => {
+          if (!isLoggedIn) {
+            event.preventDefault();
+            requireAuth();
+            return;
+          }
           if (!liked) {
             setBurst(true);
             window.setTimeout(() => setBurst(false), 650);

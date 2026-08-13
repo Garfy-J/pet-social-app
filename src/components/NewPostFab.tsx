@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { useAuthGate } from "./AuthGate";
 import { UploadForm } from "./UploadForm";
 
-export function NewPostFab() {
+export function NewPostFab({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [open, setOpen] = useState(false);
+  const { requireAuth } = useAuthGate();
 
   return (
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => (isLoggedIn ? setOpen(true) : requireAuth())}
         aria-label="Create new post"
         className="fixed bottom-6 right-6 z-20 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-3xl font-bold text-white shadow-[0_4px_0_0_rgba(0,0,0,0.15)] transition-transform hover:scale-105 hover:bg-primary-dark active:scale-95"
       >

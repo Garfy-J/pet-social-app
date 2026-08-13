@@ -7,6 +7,7 @@ export type Database = {
           username: string;
           avatar_url: string | null;
           bio: string | null;
+          is_admin: boolean;
           created_at: string;
         };
         Insert: {
@@ -14,6 +15,7 @@ export type Database = {
           username: string;
           avatar_url?: string | null;
           bio?: string | null;
+          is_admin?: boolean;
           created_at?: string;
         };
         Update: {
@@ -21,6 +23,7 @@ export type Database = {
           username?: string;
           avatar_url?: string | null;
           bio?: string | null;
+          is_admin?: boolean;
           created_at?: string;
         };
         Relationships: [];
@@ -206,6 +209,49 @@ export type Database = {
             foreignKeyName: "messages_sender_id_fkey";
             columns: ["sender_id"];
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      reports: {
+        Row: {
+          id: string;
+          reporter_id: string;
+          post_id: string | null;
+          comment_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          reporter_id: string;
+          post_id?: string | null;
+          comment_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          reporter_id?: string;
+          post_id?: string | null;
+          comment_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "reports_reporter_id_fkey";
+            columns: ["reporter_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reports_post_id_fkey";
+            columns: ["post_id"];
+            referencedRelation: "posts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reports_comment_id_fkey";
+            columns: ["comment_id"];
+            referencedRelation: "comments";
             referencedColumns: ["id"];
           },
         ];
